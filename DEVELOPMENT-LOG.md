@@ -68,3 +68,45 @@ por el **unique id del equipo** — es la llave para aislar los datos propios de
 ### Pendiente / futuro
 - ⬜ Responder las 64 preguntas en el tenant Dynatrace (requiere acceso al evento).
 - ⬜ Exportar respuestas/evidencias por categoría al repo.
+
+---
+
+## 2026-10-12 — Compilación del backend + generación de respuestas
+
+### 1. Backend .NET (`2026-Veraguas-Microsoft`) — compilado y probado
+- SDK .NET **10.0.401** instalado localmente (`~/.dotnet`, sin sudo).
+- `dotnet build -c Release` → **Build succeeded, 0 errores**.
+- Warnings CS8620 (nullability en `Program.cs` DeepHealthCheck) **corregidos** con cast
+  a `IReadOnlyDictionary<string, object?>` → bajó de 4 a 2 warnings.
+- Queda 1 warning **NU1903** (AutoMapper 13.0.1, advisory GHSA-rvv3-g6hj-g44x): no
+  forzar upgrade (AutoMapper 14+ cambia licencia) → decisión del equipo, documentado.
+- API ejecutada en local (`http://127.0.0.1:5099`, EF Core InMemory) y endpoints probados:
+  | Endpoint | Resultado |
+  |---|---|
+  | `GET /health` | 200 `{"status":"Healthy"}` |
+  | `GET /health/deep` | 503 Degraded (E4 — handshake frontend pendiente, esperado) |
+  | `GET /api/status` | 503 (E5) |
+  | `GET /api/services` | 200 |
+  | `GET /api/flights/list` | 200 |
+  | `POST /api/flights/create` | **201 Created** (E6 ✅) |
+  | `POST` payload inválido | **400** con errores E6 estructurados |
+  | `X-Correlation-Id` | ecoado en respuesta ✅ |
+- Hallazgo: `FrontendHandshake` no bloquea GET con Origin no permitido en frío
+  (coherente con diseño E5 — requiere handshake previo). Documentado, no es bug.
+
+### 2. Respuestas del reto Dynatrace — `RESPUESTAS.md`
+- Extraídas las **64 preguntas** (10+26+9+6+13) de `section_files/`.
+- Extraídos los **DQL base** de los 3 notebooks (PaymentService, Nginx, Gigamon).
+- Registros esperados confirmados: PaymentService **2.439**, Nginx **1.000**, Gigamon **7.425**.
+- **Respuestas derivables de `lookups/` locales** (verificadas con script):
+  - 2206 total usuarios = **400**
+  - 2207 Margaret Wilson → id **u530064** (tier diamond)
+  - Miembros Diamond = **50**; tiers: silver 75 / gold 100 / platinum 50 / diamond 50 / none 125
+  - 2215 ruta CVE-2019-11043 = **`/info.php`**; 11 IPs en Rusia
+  - 2224 suites TLS < 256 bits = **138**; 4 UA Chrome+Android (2,5,8,11 → <10 excluye 11)
+- **63 preguntas restantes requieren el tenant en vivo** (credenciales + `<UID>` del
+  equipo): `RESPUESTAS.md` entrega el **DQL exacto listo para pegar** por cada una y la
+  ruta UI para infra/trazas/seguridad/DEM.
+- Limitación documentada: los `lookups/` son tablas de referencia, **no los logs** → no
+  es posible calcular los conteos sin el tenant. Honestidad > inventar valores.
+
