@@ -1,0 +1,13 @@
+# --- Sistema / editores ---
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# --- Logs ---
+*.log
+
+# Nota: este repositorio es de observabilidad (tenant Dynatrace).
+# Solo contiene docs (sections), assets e imágenes, lookups (csv/jsonl)
+# y notebooks (json con DQL). No hay build ni dependencias.
